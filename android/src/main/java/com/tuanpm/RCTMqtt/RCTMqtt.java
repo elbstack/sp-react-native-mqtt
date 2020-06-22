@@ -359,23 +359,38 @@ public class RCTMqtt implements MqttCallbackExtended {
     }
 
     /**
+    * @param topic
+    * @param payload
+    * @param qos
+    * @param retain
+    */
+   public void publish(@NonNull final String topic, @NonNull final String payload, final int qos,
+           final boolean retain) {
+       publish(topic, payload, qos, retain, null)
+   }
+
+    /**
      * @param topic
      * @param payload
      * @param qos
      * @param retain
      */
     public void publish(@NonNull final String topic, @NonNull final String payload, final int qos,
-            final boolean retain, Promise promise) {
+            final boolean retain, final Promise promise) {
         try {
             byte[] encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
             message.setQos(qos);
             message.setRetained(retain);
             client.publish(topic, message);
-            promise.resolve(true);
+            if (promise != null) {
+                promise.resolve(true);
+            }
         } catch (UnsupportedEncodingException | MqttException e) {
             e.printStackTrace();
-            promise.reject(e);
+            if (promise != null) {
+                promise.reject(e);
+            }
         }
     }
 
