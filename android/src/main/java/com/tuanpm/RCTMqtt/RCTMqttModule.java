@@ -99,6 +99,16 @@ public class RCTMqttModule extends ReactContextBaseJavaModule
                         @NonNull final String topic,
                         @NonNull final String payload,
                         final int qos,
+                        final boolean retain)
+    {
+        clients.get(clientRef).publish(topic, payload, qos, retain);
+    }
+
+    @ReactMethod
+    public void publish(@NonNull final String clientRef,
+                        @NonNull final String topic,
+                        @NonNull final String payload,
+                        final int qos,
                         final boolean retain,
                         Promise promise)
     {
