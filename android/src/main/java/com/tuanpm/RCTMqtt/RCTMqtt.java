@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
+import com.facebook.react.bridge.Promise;
 
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -299,6 +300,10 @@ public class RCTMqtt implements MqttCallbackExtended {
     }
 
     public void subscribe(@NonNull final String topic, final int qos) {
+        subscribe(topic, qos, null);
+    }
+
+    public void subscribe(@NonNull final String topic, final int qos, final Promise promise) {
         try {
             topics.put(topic, qos);
             IMqttToken subToken = client.subscribe(topic, qos);
@@ -307,6 +312,9 @@ public class RCTMqtt implements MqttCallbackExtended {
                 public void onSuccess(IMqttToken asyncActionToken) {
                     // The message was published
                     log("Subscribe success");
+                    if( promise != null) {
+                        promise.resolve(true);
+                    }
                 }
 
                 @Override
@@ -314,10 +322,16 @@ public class RCTMqtt implements MqttCallbackExtended {
                     // The subscription could not be performed, maybe the user was not
                     // authorized to subscribe on the specified topic e.g. using wildcards
                     log("Subscribe failed");
+                    if (promise != null) {
+                        promise.reject("Subscribe failed", exception);
+                    }
                 }
             });
         } catch (MqttException e) {
-            log("Cann't subscribe");
+            log("Can't subscribe");
+            if (promise != null) {
+                promise.reject("Can't subscribe", e);
+            }
             e.printStackTrace();
         }
     }
@@ -351,15 +365,17 @@ public class RCTMqtt implements MqttCallbackExtended {
      * @param retain
      */
     public void publish(@NonNull final String topic, @NonNull final String payload, final int qos,
-            final boolean retain) {
+            final boolean retain, Promise promise) {
         try {
             byte[] encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
             message.setQos(qos);
             message.setRetained(retain);
             client.publish(topic, message);
+            promise.resolve(true);
         } catch (UnsupportedEncodingException | MqttException e) {
             e.printStackTrace();
+            promise.reject(e);
         }
     }
 

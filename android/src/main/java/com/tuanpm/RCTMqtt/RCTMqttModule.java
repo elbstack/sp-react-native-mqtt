@@ -71,11 +71,20 @@ public class RCTMqttModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
+        public void subscribe(@NonNull final String clientRef,
+                              @NonNull final String topic,
+                              final int qos)
+        {
+            clients.get(clientRef).subscribe(topic, qos);
+        }
+
+    @ReactMethod
     public void subscribe(@NonNull final String clientRef,
                           @NonNull final String topic,
-                          final int qos)
+                          final int qos,
+                          Promise promise)
     {
-        clients.get(clientRef).subscribe(topic, qos);
+        clients.get(clientRef).subscribe(topic, qos, promise);
     }
 
     @ReactMethod
@@ -90,9 +99,10 @@ public class RCTMqttModule extends ReactContextBaseJavaModule
                         @NonNull final String topic,
                         @NonNull final String payload,
                         final int qos,
-                        final boolean retain)
+                        final boolean retain,
+                        Promise promise)
     {
-        clients.get(clientRef).publish(topic, payload, qos, retain);
+        clients.get(clientRef).publish(topic, payload, qos, retain, promise);
     }
 
     @ReactMethod
